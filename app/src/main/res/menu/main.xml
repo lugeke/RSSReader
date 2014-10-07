@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.lugeke.rssreader.MainActivity" >
+    <item
+        android:id="@+id/action_add"
+        android:icon="@drawable/ic_action_add"
+        android:showAsAction="ifRoom"
+        android:title="@string/action_add"/>
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_action_share"
+        android:showAsAction="ifRoom"
+        android:title="share"
+        />
+    <item
+        android:id="@+id/action_refresh"
+        android:showAsAction="ifRoom"
+        android:title="@string/action_refresh"/>
+
+
+
+    <item
+        android:id="@+id/action_setting"
+        android:title="setting"/>
+</menu>

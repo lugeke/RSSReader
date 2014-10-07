@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RSSReader</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="action_add">Add the feed</string>
+    <string name="action_refresh">Refresh the feed</string>
+    <string name="title_activity_entries">EntriesActivity</string>
+    <string name="title_activity_entry_item">EntryItemActivity</string>
+    <string name="action_delete">delete the feed</string>
+    <string name="nofeeds">No feeds!</string>
+    <string name="title_activity_feed_add">Add new feed</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_entry_list">EntryListActivity</string>
+    <string name="noentries">No entries!</string>
+    <string name="choose_title">Share feeds with </string>
+    <string name="action_favorite">Add to the favorites</string>
+    <string name="nonetwork">Network not available!</string>
+</resources>
