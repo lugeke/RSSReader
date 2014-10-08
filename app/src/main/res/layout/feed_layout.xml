@@ -6,7 +6,7 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="45dp">
+        android:layout_height="63dp">
 
         <ImageView
             android:layout_width="39dp"
@@ -20,10 +20,10 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/linearLayout1"
             android:weightSum="1"
-            android:layout_weight="0.8">
+            android:layout_weight="1">
 
             <TextView
                 android:layout_width="match_parent"
@@ -31,26 +31,29 @@
                 android:text="name"
                 android:textSize="19sp"
                 android:id="@+id/name"
-                android:layout_weight="0.8"
                 android:paddingLeft="3dp"
-                android:paddingTop="1dp"
-                android:paddingRight="3dp" />
+                android:paddingTop="5dp"
+                android:paddingBottom="1dp"
+                android:paddingRight="2dp" />
 
             <LinearLayout
+
+                android:paddingTop="1dp"
                 android:orientation="horizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+
+                >
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Update:"
-                    android:paddingLeft="2dp"
                     android:id="@+id/textView4" />
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="fill_parent"
                     android:text="date"
                     android:paddingLeft="2dp"
                     android:id="@+id/lastupdate" />

@@ -85,7 +85,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(progressBar);
 
-        mAdapter=new SimpleCursorAdapter(this,R.layout.feed_layout,null,FROM_COLUMNS,TO_FIELDS,0);
+        mAdapter=new SimpleCursorAdapter(this,R.layout.feed,null,FROM_COLUMNS,TO_FIELDS,0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder(){
             @Override
             public boolean setViewValue(View view, Cursor cursor, int i) {
