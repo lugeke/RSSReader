@@ -119,7 +119,7 @@ class SyncAdapter extends AbstractThreadedSyncAdapter {
      * once.
      *
      * <p>Merge strategy:
-     * 1. Get cursor to all items in feed<br/>
+     * 1. Get cursor to all items in add_feed<br/>
      * 2. For each item, check if it's in the incoming data.<br/>
      *    a. YES: Remove from "incoming" list. Check if data has mutated, if so, perform
      *            database UPDATE.<br/>

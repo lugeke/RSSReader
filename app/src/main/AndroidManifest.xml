@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
@@ -30,20 +29,22 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
         <activity
             android:name=".FeedAddActivity"
             android:theme= "@android:style/Theme.Holo.Light.Dialog"
-            android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_feed_add" >
         </activity>
+
         <activity
             android:name=".EntryListActivity"
             android:label="@string/title_activity_entry_list" >
         </activity>
+
         <activity
             android:name=".EntryItemActivity"
             android:label="@string/title_activity_entry_item" >
@@ -58,6 +59,7 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
+
         <service
             android:name=".SyncService"
             android:exported="true"
@@ -70,10 +72,12 @@
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
         </service>
+
         <service
-            android:name=".service.fetchImageService"
+            android:name=".service.mService"
             android:exported="false" >
         </service>
+
     </application>
 
 </manifest>

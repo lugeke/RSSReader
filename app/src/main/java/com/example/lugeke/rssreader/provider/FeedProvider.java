@@ -85,7 +85,6 @@ public class FeedProvider extends ContentProvider {
                 result.append(columns[i]).append(" ").append(types[i]);
             }
             result.append(" )");
-            Log.v("ss", result.toString());
             return result.toString();
         }
 
@@ -172,9 +171,9 @@ public class FeedProvider extends ContentProvider {
     public String getType(Uri arg0) {
         switch (URI_MATCHER.match(arg0)) {
             case URI_FEEDS:
-                return "vnd.android.cursor.dir/vnd.feeddata.feed";
+                return "vnd.android.cursor.dir/vnd.feeddata.add_feed";
             case URI_FEED:
-                return "vnd.android.cursor.item/vnd.feeddata.feed";
+                return "vnd.android.cursor.item/vnd.feeddata.add_feed";
             case URI_FAVORITES:
             case URI_ALLENTRIES:
             case URI_ENTRIES:

@@ -27,12 +27,14 @@ import java.util.regex.Pattern;
  * <p>
  * helper methods.
  */
-public class fetchImageService extends IntentService {
+public class mService extends IntentService {
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String ACTION_FETCH_IMAGE = "com.example.lugeke.rssreader.service.action.fETCH_IMAGE";
     private static final String TAG="FETCHIMAGESERVICE";
     private static final String EXTRA_URL = "com.example.lugeke.rssreader.service.extra.URL";
     private static final String EXTRA_ID="com.example.lugeke.rssreader.service.extra.ID";
+
+    private static final String ACTION_DELETE_OLDDATA="com.example.lugeke.rssreader.service.action.DELETE_OLDDATA";
     /**
      * Starts this service to perform action Foo with the given parameters. If
      * the service is already performing a task this action will be queued.
@@ -40,7 +42,7 @@ public class fetchImageService extends IntentService {
      * @see IntentService
      */
     public static void startActionFetchImage(Context context, String urls[],long ids[]) {
-        Intent intent = new Intent(context, fetchImageService.class);
+        Intent intent = new Intent(context, mService.class);
         intent.setAction(ACTION_FETCH_IMAGE);
         intent.putExtra(EXTRA_URL, urls);
         intent.putExtra(EXTRA_ID,ids);
@@ -55,7 +57,7 @@ public class fetchImageService extends IntentService {
      */
 
 
-    public fetchImageService() {
+    public mService() {
         super("fetchImageService");
     }
 
@@ -68,13 +70,18 @@ public class fetchImageService extends IntentService {
                 final long []param2=intent.getLongArrayExtra(EXTRA_ID);
                 handleActionFetchImage(param1,param2);
             }
+            else if(ACTION_DELETE_OLDDATA.equals(action)){
+                handleActionDeleteOldData();
+            }
         }
     }
+    private void handleActionDeleteOldData(){
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
+    }
+
+
+
+
     private void handleActionFetchImage(String urls[],long ids[]) {
         int len=urls.length;
         for(int i=0;i<len;++i){

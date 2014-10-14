@@ -25,7 +25,7 @@ public class RSSHandler extends DefaultHandler {
     private static final String ANDRHOMBUS = "&#";
     private static final String TAG_RSS = "rss";
     private static final String TAG_RDF = "rdf";
-    private static final String TAG_FEED = "feed";
+    private static final String TAG_FEED = "add_feed";
     private static final String TAG_ENTRY = "entry";
     private static final String TAG_ITEM = "item";
     private static final String TAG_UPDATED = "updated";
@@ -127,20 +127,21 @@ public class RSSHandler extends DefaultHandler {
     public void init(Date reallastupdate, final long id, String url) {
         final long keepDateBorderTime = System.currentTimeMillis() - KEEP_TIME;
         keepDateBorder = new Date(keepDateBorderTime);// 设置旧的新闻保留时间
-        if (reallastupdate == null)
-            reallastupdate = keepDateBorder;
+        if (reallastupdate == null) {
+            reallastupdate = new Date(0);
+        }
         this.realLastUpdate = reallastupdate.getTime();
         insertUpdate = reallastupdate;
         this.id = id;
         Uri feedEntiresUri = FeedContract.EntryColumns.CONTENT_URI(id);// ***feeds/id/entries代表一个订阅源的所有新闻
 
-        final String query = new StringBuilder(// 查询语句
+        /*final String query = new StringBuilder(// 查询语句
                 FeedContract.EntryColumns.DATE).append('<')
                 .append(keepDateBorderTime).append(" and ")
                 .append(FeedContract.EntryColumns.FAVORITE).append("=0")
                 .toString();
-
-        context.getContentResolver().delete(feedEntiresUri, query, null);// 删除旧的并且没有收藏的新闻
+*/
+        //context.getContentResolver().delete(feedEntiresUri, query, null);// 删除旧的并且没有收藏的新闻
         // 变量初始化
         feedRefreshed = false;
         title = null;

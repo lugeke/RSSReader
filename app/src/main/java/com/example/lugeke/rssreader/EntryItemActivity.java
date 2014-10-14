@@ -65,6 +65,7 @@ public class EntryItemActivity extends Activity {
         }
 
         webView.loadDataWithBaseURL(null,content,"text/html","utf-8",null);
+        
     }
 
 

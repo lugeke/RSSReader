@@ -3,6 +3,7 @@ package com.example.lugeke.rssreader;
 import android.app.ActionBar;
 import android.app.ListActivity;
 import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -13,6 +14,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +29,7 @@ import com.example.lugeke.rssreader.provider.FeedContract;
 
 public class EntryListActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
+    private static String TAG="EntryListActivity";
     private  long id;
     private   String title;
     private byte image[];
@@ -50,15 +53,31 @@ public class EntryListActivity extends ListActivity implements LoaderManager.Loa
 
     private static final int[] TO_FIELDS = new int[]{
             R.id.title,
-            R.id.date
+            R.id.date,
     };
 
     private  ProgressBar progressBar;
 
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+//test();
+    }
+private void test(){
+
+    Cursor c=getContentResolver().query(FeedContract.EntryColumns.CONTENT_URI(id),new String[]{FeedContract.EntryColumns.TITLE,FeedContract.EntryColumns.ISREAD},null,null,null);
+    int count=c.getCount();
+    for(int i=0;i<count;++i){
+        c.moveToPosition(i);
+        Log.i(TAG,"title"+c.getString(0));
+        Log.i(TAG,"isread "+c.getInt(1));
+    }
+};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.i(TAG, "on create");
         id=getIntent().getLongExtra(MainActivity.feedID,1);
         title=getIntent().getStringExtra(MainActivity.feedName);
         image=getIntent().getByteArrayExtra(MainActivity.feedICON);
@@ -73,31 +92,33 @@ public class EntryListActivity extends ListActivity implements LoaderManager.Loa
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(progressBar);
 
+
         mAdapter=new SimpleCursorAdapter(this,R.layout.entrylist_layout,null,FROM_COLUMNS,TO_FIELDS,0);
-        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder(){
+        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
             public boolean setViewValue(View view, Cursor cursor, int i) {
-                if(i==COLUMN_DATE){
-                    Time t=new Time();
+                if (i == COLUMN_DATE) {
+                    Time t = new Time();
                     t.set(cursor.getLong(i));
-                    ((TextView)view).setText(t.format("%Y-%m-%d %H:%M"));
+                    ((TextView) view).setText(t.format("%Y-%m-%d %H:%M"));
                     return true;
-                }else if(i==COLUMN_TITLE){
+                } /*else if (i == COLUMN_TITLE) {
                     int flag = cursor.getInt(COLUMN_ISREAD);
-                    if(flag==1){
-                        ((TextView)view).setTextColor(getResources().getColor(android.R.color.darker_gray));
+                    if (flag == 1) {
+                        ((TextView) view).setTextColor(getResources().getColor(android.R.color.darker_gray));
 
                     }
-                    ((TextView)view).setText(cursor.getString(COLUMN_TITLE));
+                    ((TextView) view).setText(cursor.getString(COLUMN_TITLE));
                     return true;
-                }
-                else
+                }*/ else
                     return false;
             }
         });
+        getListView().setScrollingCacheEnabled(false);
         setListAdapter(mAdapter);
-        getLoaderManager().initLoader(0,null,this);
 
+
+        getLoaderManager().initLoader(0,null,this);
         Bitmap icon;
         Drawable d=null;
         if(image!=null) {
@@ -110,6 +131,7 @@ public class EntryListActivity extends ListActivity implements LoaderManager.Loa
         }
 
     }
+
 
 
     @Override
@@ -141,12 +163,13 @@ public class EntryListActivity extends ListActivity implements LoaderManager.Loa
         String title=c.getString(COLUMN_TITLE);
         i.putExtra(entryIcon,image);
         i.putExtra(entryID,id);
-        i.putExtra(entryTitle,title);
+        i.putExtra(entryTitle, title);
         startActivity(i);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.i(TAG,"onCreateLoader");
         return new CursorLoader(this,FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,null,null,FeedContract.EntryColumns.DATE+" desc ");
     }
 

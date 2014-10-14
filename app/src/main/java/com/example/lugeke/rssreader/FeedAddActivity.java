@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -25,7 +27,7 @@ public class FeedAddActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed_add);
-        url = (EditText) findViewById(R.id.add_url);
+        url = (AutoCompleteTextView) findViewById(R.id.add_url);
         name = (EditText) findViewById(R.id.add_name);
     }
 

@@ -17,11 +17,16 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
+import android.util.Log;
+import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -30,18 +35,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.lugeke.rssreader.provider.FeedContract;
-import com.example.lugeke.rssreader.service.fetchImageService;
+import com.example.lugeke.rssreader.service.mService;
 
 import org.apache.http.protocol.HTTP;
 
 import android.net.Uri;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
 
-    private static final String TAG="FeedListFragment";
+    private static final String TAG="MainActivity";
     private SimpleCursorAdapter mAdapter;
 
 
@@ -51,6 +57,8 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             FeedContract.FeedColumns.LASTUPDATE,
             FeedContract.FeedColumns.ICON,
     };
+
+
 
     private static final int COLUMN_ID=0;
     private static final int COLUMN_NAME=1;
@@ -70,6 +78,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
     };
     private static final String PREF_SETUP_COMPLETE="setup";
 
+    private ListView listView;
     ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +86,8 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         init();
         updateImage();
-
+        deleteOldFeed();
+        listView=getListView();
          progressBar=new ProgressBar(this);
         progressBar.setLayoutParams(new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
         progressBar.setIndeterminate(true);
@@ -85,41 +95,127 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(progressBar);
 
-        mAdapter=new SimpleCursorAdapter(this,R.layout.feed,null,FROM_COLUMNS,TO_FIELDS,0);
-        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder(){
+        mAdapter=new SimpleCursorAdapter(this,R.layout.feeds_layout,null,FROM_COLUMNS,TO_FIELDS,0);
+        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
             public boolean setViewValue(View view, Cursor cursor, int i) {
-                if(i==COLUMN_LASTUPDATE){
-                    Time t=new Time();
-                    long time=cursor.getLong(i);
+                if (i == COLUMN_LASTUPDATE) {
+                    Time t = new Time();
+                    long time = cursor.getLong(i);
                     t.set(time);
-                    if(time==0)
-                        ((TextView)view).setText("Never");
+                    if (time == 0)
+                        ((TextView) view).setText("Never");
                     else
-                        ((TextView)view).setText(t.format("%Y-%m-%d %H:%M"));
+                        ((TextView) view).setText(t.format("%Y-%m-%d %H:%M"));
                     return true;
-                }
-                else if(i==COLUMN_ICON){
-                    byte icon[]=cursor.getBlob(i);
-                    if(icon!=null) {
+                } else if (i == COLUMN_ICON) {
+                    byte icon[] = cursor.getBlob(i);
+                    if (icon != null) {
                         Bitmap bm = BitmapFactory.decodeByteArray(icon, 0, icon.length);
                         ((ImageView) view).setImageBitmap(bm);
-                    }else{
+                    } else {
                         ((ImageView) view).setImageResource(R.drawable.feedicon);
                     }
                     return true;
-                }
-                else
+                } else
                     return false;
             }
 
         });
         setListAdapter(mAdapter);
-        getLoaderManager().initLoader(0,null,this);
+        getLoaderManager().initLoader(0, null, this);
         SyncUtils.CreateSyncAccount(getApplicationContext());
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+       // listView.setBackgroundResource(R.drawable.list);
+        listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+            List<Long> id=new ArrayList<Long>();
+            @Override
+            public void onItemCheckedStateChanged(ActionMode actionMode, int i, long l, boolean b) {
 
+                if(b){
+                    Toast.makeText(getApplicationContext(),"select at"+l,Toast.LENGTH_SHORT).show();
+                    id.add(l);
+                    //listView.getChildAt(i).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                   // listView.getSelectedView().setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                    //((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                }else{
+                    Toast.makeText(getApplicationContext(),"cancel at"+l,Toast.LENGTH_SHORT).show();
+                   // ((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.background_light));
+                    id.remove(l);
+                   // listView.setItemChecked(i,false);
+                }
+
+                Log.i(TAG,id.toString());
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                MenuInflater inflater=actionMode.getMenuInflater();
+                inflater.inflate(R.menu.feeds_menu,menu);
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                id.clear();
+                return true;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                switch(menuItem.getItemId()){
+                    case R.id.menu_share:
+                        shareCurrentItem(id);
+                        actionMode.finish();
+                        return true;
+                    case R.id.menu_delete:
+                        deleteCurrentItem(id);
+                        actionMode.finish();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode actionMode) {
+            }
+        });
+    }
+
+    private void shareCurrentItem(List<Long> l){
+            String title=getResources().getString(R.string.choose_title);
+            Intent sendIntent=new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            StringBuilder content=new StringBuilder("add_feed url:\n");
+            Cursor c=getContentResolver().query(FeedContract.FeedColumns.CONTENT_URI,new String[]{FeedContract.FeedColumns.URL},null,null,null);
+            int count=c.getCount();
+            if(count==0) {
+                c.close();
+                Toast.makeText(this, "No feeds", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                for(int i=0;i<count;++i) {
+                    c.moveToPosition(i);
+                    content.append(c.getString(0)).append("\n");
+                }
+                c.close();
+                sendIntent.putExtra(Intent.EXTRA_TEXT,content.toString());
+                sendIntent.setType(HTTP.PLAIN_TEXT_TYPE);
+                startActivity(Intent.createChooser(sendIntent,title));
+
+            }
 
     }
+    private void deleteCurrentItem(List<Long> l){
+        for(long i:l){
+            getContentResolver().delete(FeedContract.FeedColumns.CONTENT_URI(i),null,null);
+        }
+        getLoaderManager().restartLoader(0,null,this);
+    }
+
+
+
 
     private void init(){
         boolean isFirst= PreferenceManager.getDefaultSharedPreferences(this).getBoolean(PREF_SETUP_COMPLETE,true);
@@ -127,7 +223,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
             ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
             String urls[]={"http://zhihu.com/rss","http://www.guokr.com/rss/","http://zh.lucida.me/atom.xml","http://blog.sina.com.cn/rss/2640115247.xml",
-                    "http://blog.jobbole.com/feed/",
+                    "http://blog.jobbole.com/add_feed/"
             };
             String names[]={"知乎每日精选","果壳网","lucida","计算机2011级工作博客",
                     "博客 - 伯乐在线",
@@ -166,11 +262,14 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
                     ids[i] = c.getLong(0);
                     urls[i] = new String(c.getString(1));
                 }
-                fetchImageService.startActionFetchImage(getApplicationContext(), urls, ids);
+                mService.startActionFetchImage(getApplicationContext(), urls, ids);
             }
         }else{
             Toast.makeText(this,getString(R.string.nonetwork),Toast.LENGTH_SHORT).show();
         }
+    }
+    private void deleteOldFeed(){
+
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -211,9 +310,9 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             case R.id.action_setting:
                 openSetting();
                 return true;
-            case R.id.action_share:
+            /*case R.id.action_share:
                 openShare();
-                return true;
+                return true;*/
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -221,29 +320,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
     }
 
 
-    public void openShare(){
-        String title=getResources().getString(R.string.choose_title);
-        Intent sendIntent=new Intent();
-        sendIntent.setAction(Intent.ACTION_SEND);
-        StringBuilder content=new StringBuilder("feed url:\n");
-        Cursor c=getContentResolver().query(FeedContract.FeedColumns.CONTENT_URI,new String[]{FeedContract.FeedColumns.URL},null,null,null);
-        int count=c.getCount();
-        if(count==0) {
-            c.close();
-            Toast.makeText(this, "No feeds", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            for(int i=0;i<count;++i) {
-                c.moveToPosition(i);
-                content.append(c.getString(0)).append("\n");
-            }
-            c.close();
-            sendIntent.putExtra(Intent.EXTRA_TEXT,content.toString());
-            sendIntent.setType(HTTP.PLAIN_TEXT_TYPE);
-            startActivity(Intent.createChooser(sendIntent,title));
 
-        }
-    }
     public void openSetting(){}
     public void openRefresh(){
         SyncUtils.TriggerRefresh();
@@ -256,11 +333,13 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
 
+        Log.i(TAG,"onCreateLoader");
         return new CursorLoader(this,FeedContract.FeedColumns.CONTENT_URI,PROJECTION,null,null,null);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        Log.i(TAG,"onLoaderReset");
         mAdapter.changeCursor(null);
     }
     @Override
@@ -272,5 +351,6 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         getListView().setEmptyView(t);
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(t);
+        Log.i(TAG,"onLoadFinished");
     }
 }

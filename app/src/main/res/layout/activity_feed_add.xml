@@ -4,15 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/add_url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="URL"
-        android:ems="10" >
+        android:inputType="textUri"/>
 
-        <requestFocus />
-    </EditText>
+
 
     <EditText
         android:id="@+id/add_name"
