@@ -1,39 +1,42 @@
 package com.example.lugeke.rssreader;
 
 import android.app.ActionBar;
-import android.app.ListActivity;
-import android.app.LoaderManager;
 import android.content.ContentValues;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.ListFragment;
+import android.support.v4.content.Loader;
 import android.text.format.Time;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import com.example.lugeke.rssreader.provider.FeedContract;
-
-public class EntryListActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.view.ViewPager;
+import android.support.v4.content.CursorLoader;
+public class EntryListActivity extends FragmentActivity  {
 
     private static String TAG="EntryListActivity";
-    private  long id;
+    private  static long id;
     private   String title;
-    private byte image[];
-    private SimpleCursorAdapter mAdapter;
+    private static byte image[];
+
+    ViewPager mViewPager;
 
     private static final String[] PROJECTION=new String[]{
             FeedContract.EntryColumns._ID,
@@ -56,69 +59,21 @@ public class EntryListActivity extends ListActivity implements LoaderManager.Loa
             R.id.date,
     };
 
-    private  ProgressBar progressBar;
 
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-//test();
-    }
-private void test(){
 
-    Cursor c=getContentResolver().query(FeedContract.EntryColumns.CONTENT_URI(id),new String[]{FeedContract.EntryColumns.TITLE,FeedContract.EntryColumns.ISREAD},null,null,null);
-    int count=c.getCount();
-    for(int i=0;i<count;++i){
-        c.moveToPosition(i);
-        Log.i(TAG,"title"+c.getString(0));
-        Log.i(TAG,"isread "+c.getInt(1));
-    }
-};
+    EntryListPagerAdapter mPagerAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.entrylist_viewpager);
         Log.i(TAG, "on create");
-        id=getIntent().getLongExtra(MainActivity.feedID,1);
+        id=getIntent().getLongExtra(MainActivity.feedID, 1);
         title=getIntent().getStringExtra(MainActivity.feedName);
         image=getIntent().getByteArrayExtra(MainActivity.feedICON);
         setTitle(title);
 
-
-
-         progressBar=new ProgressBar(this);
-        progressBar.setLayoutParams(new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
-        progressBar.setIndeterminate(true);
-        getListView().setEmptyView(progressBar);
-        ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
-        root.addView(progressBar);
-
-
-        mAdapter=new SimpleCursorAdapter(this,R.layout.entrylist_layout,null,FROM_COLUMNS,TO_FIELDS,0);
-        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-            @Override
-            public boolean setViewValue(View view, Cursor cursor, int i) {
-                if (i == COLUMN_DATE) {
-                    Time t = new Time();
-                    t.set(cursor.getLong(i));
-                    ((TextView) view).setText(t.format("%Y-%m-%d %H:%M"));
-                    return true;
-                } /*else if (i == COLUMN_TITLE) {
-                    int flag = cursor.getInt(COLUMN_ISREAD);
-                    if (flag == 1) {
-                        ((TextView) view).setTextColor(getResources().getColor(android.R.color.darker_gray));
-
-                    }
-                    ((TextView) view).setText(cursor.getString(COLUMN_TITLE));
-                    return true;
-                }*/ else
-                    return false;
-            }
-        });
-        getListView().setScrollingCacheEnabled(false);
-        setListAdapter(mAdapter);
-
-
-        getLoaderManager().initLoader(0,null,this);
         Bitmap icon;
         Drawable d=null;
         if(image!=null) {
@@ -130,10 +85,53 @@ private void test(){
             getActionBar().setIcon(R.drawable.feedicon);
         }
 
+
+        mPagerAdapter=new EntryListPagerAdapter(getSupportFragmentManager());
+
+        final ActionBar actionBar=getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        mViewPager=(ViewPager)findViewById(R.id.pager);
+        mViewPager.setAdapter(mPagerAdapter);
+
+
     }
 
 
 
+
+    public static class EntryListPagerAdapter extends FragmentStatePagerAdapter {
+
+        public EntryListPagerAdapter(FragmentManager fm){
+            super(fm);
+        }
+        @Override
+        public Fragment getItem(int i) {
+
+            Log.i(TAG,"getItem"+i);
+
+            listFragment l=new listFragment();
+            Bundle args=new Bundle();
+            args.putInt(listFragment.ARG_OBJ,i);
+            l.setArguments(args);
+            return l;
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+           if(position==0)
+               return "All";/*
+            else if(position==1)
+               return "Unread";*/
+            else
+               return "Star";
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -155,36 +153,82 @@ private void test(){
     public static String entryID="entryID";
     public static String entryTitle="entryTitle";
     public static String entryIcon="entryIcon";
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-        Intent i=new Intent(this,EntryItemActivity.class);
-        Cursor c=(Cursor)mAdapter.getItem(position);
-        String title=c.getString(COLUMN_TITLE);
-        i.putExtra(entryIcon,image);
-        i.putExtra(entryID,id);
-        i.putExtra(entryTitle, title);
-        startActivity(i);
-    }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        Log.i(TAG,"onCreateLoader");
-        return new CursorLoader(this,FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,null,null,FeedContract.EntryColumns.DATE+" desc ");
-    }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        mAdapter.changeCursor(null);
-    }
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        mAdapter.changeCursor(cursor);
-        progressBar.setVisibility(View.GONE);
-        TextView t=new TextView(this);
-        t.setText(getString(R.string.noentries));
-        getListView().setEmptyView(t);
-        ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
-        root.addView(t);
+
+
+
+    public static class listFragment extends ListFragment implements  LoaderManager.LoaderCallbacks<Cursor>{
+
+
+        private static String ARG_OBJ;
+        private  ProgressBar progressBar;
+        private  SimpleCursorAdapter mAdapter;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mAdapter=new SimpleCursorAdapter(getActivity(),R.layout.entrylist_layout,null,FROM_COLUMNS,TO_FIELDS,0);
+            mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+                @Override
+                public boolean setViewValue(View view, Cursor cursor, int i) {
+                    if (i == COLUMN_DATE) {
+                        Time t = new Time();
+                        t.set(cursor.getLong(i));
+                        ((TextView) view).setText(t.format("%Y-%m-%d %H:%M"));
+                        return true;
+                    } else
+                        return false;
+                }
+            });
+
+            Bundle args=getArguments();
+
+
+
+            setListAdapter(mAdapter);
+            getLoaderManager().initLoader(args.getInt(ARG_OBJ),null,this);
+        }
+
+
+
+        @Override
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            super.onListItemClick(l, v, position, id);
+            Intent i=new Intent(getActivity(),EntryItemActivity.class);
+            Cursor c=(Cursor)mAdapter.getItem(position);
+            String title=c.getString(COLUMN_TITLE);
+            i.putExtra(entryIcon,image);
+            i.putExtra(entryID,id);
+            i.putExtra(entryTitle, title);
+            ContentValues values=new ContentValues();
+            values.put(FeedContract.EntryColumns.ISREAD,1);
+            getActivity().getContentResolver().update(FeedContract.EntryColumns.ENTRY_CONTENT_URI(id),values,null,null);
+            startActivity(i);
+        }
+
+
+        @Override
+        public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+            Log.i(TAG,"onCreateLoader"+i);
+            if(i==0)
+                return new CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,null,null,FeedContract.EntryColumns.DATE+" desc ");
+            /*else if(i==1){
+                return  new CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,FeedContract.EntryColumns.ISREAD+" =0 ",null,FeedContract.EntryColumns.DATE+" desc ");
+            }*/
+            else{
+                return new  CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,FeedContract.EntryColumns.FAVORITE+" =1 ",null,FeedContract.EntryColumns.DATE+" desc ");
+            }
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+            mAdapter.changeCursor(cursor);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> cursorLoader) {
+            mAdapter.changeCursor(null);
+        }
     }
 }

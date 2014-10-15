@@ -50,9 +50,7 @@ public class EntryItemActivity extends Activity {
         }c.close();
 
 
-        ContentValues values=new ContentValues();
-        values.put(FeedContract.EntryColumns.ISREAD,1);
-        getContentResolver().update(FeedContract.EntryColumns.ENTRY_CONTENT_URI(id),values,null,null);
+
         Bitmap icon;
         Drawable d=null;
         if(image!=null) {
