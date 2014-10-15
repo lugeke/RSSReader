@@ -17,4 +17,6 @@
     <string name="choose_title">Share feeds with </string>
     <string name="action_favorite">Add to the favorites</string>
     <string name="nonetwork">Network not available!</string>
+    <string name="addok">Ok</string>
+    <string name="addcancel">Cancel</string>
 </resources>

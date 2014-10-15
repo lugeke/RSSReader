@@ -1,10 +1,16 @@
 package com.example.lugeke.rssreader;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.Fragment;
 import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.ContentProviderOperation;
+import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.OperationApplicationException;
@@ -16,10 +22,12 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,6 +35,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -80,6 +90,9 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
     private ListView listView;
     ProgressBar progressBar;
+
+    static EditText url;
+    static EditText name;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -128,30 +141,31 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
        // listView.setBackgroundResource(R.drawable.list);
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
-            List<Long> id=new ArrayList<Long>();
+            List<Long> id = new ArrayList<Long>();
+
             @Override
             public void onItemCheckedStateChanged(ActionMode actionMode, int i, long l, boolean b) {
 
-                if(b){
-                    Toast.makeText(getApplicationContext(),"select at"+l,Toast.LENGTH_SHORT).show();
+                if (b) {
+                    Toast.makeText(getApplicationContext(), "select at" + l, Toast.LENGTH_SHORT).show();
                     id.add(l);
                     //listView.getChildAt(i).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-                   // listView.getSelectedView().setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                    // listView.getSelectedView().setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
                     //((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-                }else{
-                    Toast.makeText(getApplicationContext(),"cancel at"+l,Toast.LENGTH_SHORT).show();
-                   // ((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.background_light));
+                } else {
+                    Toast.makeText(getApplicationContext(), "cancel at" + l, Toast.LENGTH_SHORT).show();
+                    // ((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.background_light));
                     id.remove(l);
-                   // listView.setItemChecked(i,false);
+                    // listView.setItemChecked(i,false);
                 }
 
-                Log.i(TAG,id.toString());
+                Log.i(TAG, id.toString());
             }
 
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-                MenuInflater inflater=actionMode.getMenuInflater();
-                inflater.inflate(R.menu.feeds_menu,menu);
+                MenuInflater inflater = actionMode.getMenuInflater();
+                inflater.inflate(R.menu.feeds_menu, menu);
                 return true;
             }
 
@@ -163,7 +177,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
             @Override
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-                switch(menuItem.getItemId()){
+                switch (menuItem.getItemId()) {
                     case R.id.menu_share:
                         shareCurrentItem(id);
                         actionMode.finish();
@@ -326,8 +340,12 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         SyncUtils.TriggerRefresh();
     }
     public void openAdd(){
-        Intent addIntent=new Intent(this,FeedAddActivity.class);
-        startActivity(addIntent);
+        /*Intent addIntent=new Intent(this,FeedAddActivity.class);
+        startActivity(addIntent);*/
+        DialogFragment f=new addFragment();
+        f.setCancelable(false);
+
+        f.show(getFragmentManager(), "add");
 
     }
     @Override
@@ -352,5 +370,62 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(t);
         Log.i(TAG,"onLoadFinished");
+    }
+
+    public  static  class addFragment extends DialogFragment {
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater=getActivity().getLayoutInflater();
+            final View  v=inflater.inflate(R.layout.add_dialog, null);
+            builder.setIcon(R.drawable.add_feed).setTitle("Add new feed").setView(v).setPositiveButton(R.string.addok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+
+                    url = (EditText) v.findViewById(R.id.add_url);
+                    name = (EditText) v.findViewById(R.id.add_name);
+
+                    if (TextUtils.isEmpty(url.getText().toString())) {
+                        Toast.makeText(getActivity(), "The url can not be empty!", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        StringBuilder getUrl = new StringBuilder("http://");
+                        String urls = url.getText().toString();
+                        String getName = name.getText().toString();
+                        if (!urls.startsWith("http://")) {
+                            getUrl.append(urls);
+                        } else {
+                            getUrl.append(urls.substring(7));
+                        }
+                        ContentValues values = new ContentValues();
+                        String url = getUrl.toString();
+                        values.put(FeedContract.FeedColumns.URL, url);
+                        if (TextUtils.isEmpty(getName)) {
+                            int index = url.indexOf("/", 7);
+                            if (index != -1)
+                                getName = url.substring(0, index);
+                            else
+                                getName = url;
+                        }
+                        values.put(FeedContract.FeedColumns.NAME, getName);
+                        Uri u = getActivity().getContentResolver().insert(
+                                FeedContract.FeedColumns.CONTENT_URI,
+                                values);
+                    }
+
+
+                }
+
+            }).setNegativeButton(R.string.addcancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    //dismiss();
+                }
+            });
+            return builder.create();
+        }
     }
 }
