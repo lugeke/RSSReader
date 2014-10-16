@@ -237,10 +237,10 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
             ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
             String urls[]={"http://zhihu.com/rss","http://www.guokr.com/rss/","http://zh.lucida.me/atom.xml","http://blog.sina.com.cn/rss/2640115247.xml",
-                    "http://blog.jobbole.com/add_feed/"
+                    "http://blog.jobbole.com/feed/","http://feeds.feedburner.com/blogspot/hsDu?format=xml"
             };
             String names[]={"知乎每日精选","果壳网","lucida","计算机2011级工作博客",
-                    "博客 - 伯乐在线",
+                    "博客 - 伯乐在线","android developer"
 
             };
 

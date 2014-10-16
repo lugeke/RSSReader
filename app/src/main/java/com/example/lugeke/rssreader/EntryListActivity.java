@@ -1,13 +1,8 @@
 package com.example.lugeke.rssreader;
 
-import android.app.ActionBar;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
@@ -18,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import com.example.lugeke.rssreader.provider.FeedContract;
@@ -74,7 +68,7 @@ public class EntryListActivity extends FragmentActivity  {
         image=getIntent().getByteArrayExtra(MainActivity.feedICON);
         setTitle(title);
 
-        Bitmap icon;
+        /*Bitmap icon;
         Drawable d=null;
         if(image!=null) {
             icon = BitmapFactory.decodeByteArray(image, 0, image.length);
@@ -83,13 +77,11 @@ public class EntryListActivity extends FragmentActivity  {
         }
         else{
             getActionBar().setIcon(R.drawable.feedicon);
-        }
+        }*/
 
 
         mPagerAdapter=new EntryListPagerAdapter(getSupportFragmentManager());
 
-        final ActionBar actionBar=getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
 
         mViewPager=(ViewPager)findViewById(R.id.pager);
         mViewPager.setAdapter(mPagerAdapter);
@@ -100,7 +92,7 @@ public class EntryListActivity extends FragmentActivity  {
 
 
 
-    public static class EntryListPagerAdapter extends FragmentStatePagerAdapter {
+    public static class EntryListPagerAdapter extends FragmentPagerAdapter {
 
         public EntryListPagerAdapter(FragmentManager fm){
             super(fm);
@@ -125,9 +117,7 @@ public class EntryListActivity extends FragmentActivity  {
         @Override
         public CharSequence getPageTitle(int position) {
            if(position==0)
-               return "All";/*
-            else if(position==1)
-               return "Unread";*/
+               return "All";
             else
                return "Star";
         }
@@ -157,12 +147,10 @@ public class EntryListActivity extends FragmentActivity  {
 
 
 
-
     public static class listFragment extends ListFragment implements  LoaderManager.LoaderCallbacks<Cursor>{
 
 
         private static String ARG_OBJ;
-        private  ProgressBar progressBar;
         private  SimpleCursorAdapter mAdapter;
 
         @Override
@@ -192,6 +180,7 @@ public class EntryListActivity extends FragmentActivity  {
 
 
 
+
         @Override
         public void onListItemClick(ListView l, View v, int position, long id) {
             super.onListItemClick(l, v, position, id);
@@ -213,9 +202,7 @@ public class EntryListActivity extends FragmentActivity  {
             Log.i(TAG,"onCreateLoader"+i);
             if(i==0)
                 return new CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,null,null,FeedContract.EntryColumns.DATE+" desc ");
-            /*else if(i==1){
-                return  new CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,FeedContract.EntryColumns.ISREAD+" =0 ",null,FeedContract.EntryColumns.DATE+" desc ");
-            }*/
+
             else{
                 return new  CursorLoader(getActivity(),FeedContract.EntryColumns.CONTENT_URI(id),PROJECTION,FeedContract.EntryColumns.FAVORITE+" =1 ",null,FeedContract.EntryColumns.DATE+" desc ");
             }
