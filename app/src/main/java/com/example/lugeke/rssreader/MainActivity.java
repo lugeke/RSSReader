@@ -4,7 +4,6 @@ import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.Fragment;
 import android.app.ListActivity;
 import android.app.LoaderManager;
 import android.content.ContentProviderOperation;
@@ -34,8 +33,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -59,6 +56,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
     private static final String TAG="MainActivity";
     private SimpleCursorAdapter mAdapter;
+
 
 
     private static final String[] PROJECTION=new String[]{
@@ -147,16 +145,9 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             public void onItemCheckedStateChanged(ActionMode actionMode, int i, long l, boolean b) {
 
                 if (b) {
-                    Toast.makeText(getApplicationContext(), "select at" + l, Toast.LENGTH_SHORT).show();
                     id.add(l);
-                    //listView.getChildAt(i).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-                    // listView.getSelectedView().setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
-                    //((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
                 } else {
-                    Toast.makeText(getApplicationContext(), "cancel at" + l, Toast.LENGTH_SHORT).show();
-                    // ((View)listView.getItemAtPosition(i)).setBackgroundColor(getResources().getColor(android.R.color.background_light));
                     id.remove(l);
-                    // listView.setItemChecked(i,false);
                 }
 
                 Log.i(TAG, id.toString());
@@ -179,12 +170,17 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.menu_share:
-                        shareCurrentItem(id);
-                        actionMode.finish();
+
+                      shareCurrentItem(id);
+
                         return true;
+
                     case R.id.menu_delete:
+
                         deleteCurrentItem(id);
                         actionMode.finish();
+
+
                         return true;
                     default:
                         return false;
@@ -196,6 +192,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             }
         });
     }
+
 
     private void shareCurrentItem(List<Long> l){
             String title=getResources().getString(R.string.choose_title);
@@ -221,14 +218,65 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             }
 
     }
-    private void deleteCurrentItem(List<Long> l){
-        for(long i:l){
-            getContentResolver().delete(FeedContract.FeedColumns.CONTENT_URI(i),null,null);
-        }
+    private   void deleteCurrentItem(final List<Long> l){
+          final int count=l.size();
+        new DialogFragment( ){
+            @Override
+            public Dialog onCreateDialog(Bundle savedInstanceState) {
+                AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+                StringBuffer title=new StringBuffer("Delete ");
+                if(count==1)title.append(count +" item!");
+                else title.append(count+" items!");
+                builder.setTitle(title).setPositiveButton("Ok",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                      //  delete=true;
+                        for(long id:l){
+                            getContentResolver().delete(FeedContract.FeedColumns.CONTENT_URI(id), null, null);
+                        }
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                      //  delete=false;
+                    }
+                });
+
+
+                return builder.create();
+            }
+        }.show(getFragmentManager(),"delete");
+
         getLoaderManager().restartLoader(0,null,this);
     }
 
+    public  static class deleteDialog extends  DialogFragment{
 
+        int count;
+        public void setCount(int c){this.count=c;}
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+            StringBuffer title=new StringBuffer("Delete ");
+            if(count==1)title.append(count +" item!");
+            else title.append(count+" items!");
+            builder.setTitle(title).setPositiveButton("Ok",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    delete=true;
+                }
+            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    delete=false;
+                }
+            });
+
+
+            return builder.create();
+        }
+    }
 
 
     private void init(){
@@ -335,6 +383,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 
 
 
+
     public void openSetting(){}
     public void openRefresh(){
         SyncUtils.TriggerRefresh();
@@ -371,6 +420,8 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         root.addView(t);
         Log.i(TAG,"onLoadFinished");
     }
+
+    private static boolean delete;
 
     public  static  class addFragment extends DialogFragment {
 
