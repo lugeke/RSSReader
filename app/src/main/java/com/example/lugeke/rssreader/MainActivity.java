@@ -1,6 +1,7 @@
 package com.example.lugeke.rssreader;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -57,7 +58,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
     private static final String TAG="MainActivity";
     private SimpleCursorAdapter mAdapter;
 
-
+    private  MainActivity m=this;
 
     private static final String[] PROJECTION=new String[]{
             FeedContract.FeedColumns._ID,
@@ -138,6 +139,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         SyncUtils.CreateSyncAccount(getApplicationContext());
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
        // listView.setBackgroundResource(R.drawable.list);
+
         listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             List<Long> id = new ArrayList<Long>();
 
@@ -172,15 +174,13 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
                     case R.id.menu_share:
 
                       shareCurrentItem(id);
-
+                        actionMode.finish();
                         return true;
 
                     case R.id.menu_delete:
 
                         deleteCurrentItem(id);
                         actionMode.finish();
-
-
                         return true;
                     default:
                         return false;
@@ -218,8 +218,13 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             }
 
     }
-    private   void deleteCurrentItem(final List<Long> l){
+
+    private LoaderManager lm=getLoaderManager();
+
+    public   void deleteCurrentItem(final List<Long> l){
           final int count=l.size();
+
+
         new DialogFragment( ){
             @Override
             public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -230,15 +235,16 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
                 builder.setTitle(title).setPositiveButton("Ok",new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                      //  delete=true;
+
                         for(long id:l){
                             getContentResolver().delete(FeedContract.FeedColumns.CONTENT_URI(id), null, null);
                         }
+                        lm.restartLoader(0,null,m);
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                      //  delete=false;
+
                     }
                 });
 
@@ -247,36 +253,11 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             }
         }.show(getFragmentManager(),"delete");
 
-        getLoaderManager().restartLoader(0,null,this);
+
+
     }
 
-    public  static class deleteDialog extends  DialogFragment{
 
-        int count;
-        public void setCount(int c){this.count=c;}
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-            AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
-            StringBuffer title=new StringBuffer("Delete ");
-            if(count==1)title.append(count +" item!");
-            else title.append(count+" items!");
-            builder.setTitle(title).setPositiveButton("Ok",new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    delete=true;
-                }
-            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    delete=false;
-                }
-            });
-
-
-            return builder.create();
-        }
-    }
 
 
     private void init(){
@@ -421,7 +402,6 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         Log.i(TAG,"onLoadFinished");
     }
 
-    private static boolean delete;
 
     public  static  class addFragment extends DialogFragment {
 

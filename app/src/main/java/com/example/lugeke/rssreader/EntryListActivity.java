@@ -154,6 +154,17 @@ public class EntryListActivity extends FragmentActivity  {
         private  SimpleCursorAdapter mAdapter;
 
         @Override
+        public void onStart() {
+            super.onStart();
+            Bundle args=getArguments();
+            int id=args.getInt(ARG_OBJ);
+            if(getLoaderManager().getLoader(id)!=null){
+                getLoaderManager().restartLoader(id,null,this);
+            }
+
+        }
+
+        @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             mAdapter=new SimpleCursorAdapter(getActivity(),R.layout.entrylist_layout,null,FROM_COLUMNS,TO_FIELDS,0);
@@ -177,6 +188,7 @@ public class EntryListActivity extends FragmentActivity  {
             setListAdapter(mAdapter);
             getLoaderManager().initLoader(args.getInt(ARG_OBJ),null,this);
         }
+
 
 
 
