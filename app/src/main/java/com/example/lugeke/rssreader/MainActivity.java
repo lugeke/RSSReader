@@ -353,9 +353,9 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
             case R.id.action_setting:
                 openSetting();
                 return true;
-            /*case R.id.action_share:
-                openShare();
-                return true;*/
+            case R.id.action_importOPML:
+                importOpml();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -363,8 +363,25 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
     }
 
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+       if(requestCode==CHOICE_OPML){
+           if(resultCode==RESULT_OK) {
+               Uri uri = data.getData();
 
+               Toast.makeText(getApplicationContext(), url.toString(), Toast.LENGTH_SHORT);
+           }
+       }
+    }
 
+    private  static final int CHOICE_OPML=1;
+
+    public void importOpml(){
+        Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("file/*");
+        startActivityForResult(intent,CHOICE_OPML);
+    }
     public void openSetting(){}
     public void openRefresh(){
         SyncUtils.TriggerRefresh();
@@ -399,7 +416,7 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         getListView().setEmptyView(t);
         ViewGroup root=(ViewGroup)findViewById(android.R.id.content);
         root.addView(t);
-        Log.i(TAG,"onLoadFinished");
+        Log.i(TAG, "onLoadFinished");
     }
 
 
