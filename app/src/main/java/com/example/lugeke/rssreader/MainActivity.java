@@ -22,6 +22,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -46,8 +47,18 @@ import com.example.lugeke.rssreader.provider.FeedContract;
 import com.example.lugeke.rssreader.service.mService;
 
 import org.apache.http.protocol.HTTP;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import android.net.Uri;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -369,12 +380,43 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
        if(requestCode==CHOICE_OPML){
            if(resultCode==RESULT_OK) {
                Uri uri = data.getData();
-
-               Toast.makeText(getApplicationContext(), url.toString(), Toast.LENGTH_SHORT);
+               try {
+                   FileInputStream fin=new FileInputStream(uri.getPath());
+                   BufferedReader reader=new BufferedReader(new InputStreamReader(fin));
+                   /*String s=new String();
+                   while ((s=reader.readLine())!=null){
+                       Log.i(TAG,s);
+                   }*/
+               } catch (java.io.IOException e) {
+                   e.printStackTrace();
+               }
            }
        }
     }
 
+
+
+    private static class opmlHandler extends DefaultHandler{
+
+        static String url=null;
+        static String name=null;
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            if(localName.equals("")){}
+            else if(localName.equals("")){}
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            super.characters(ch, start, length);
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            super.endElement(uri, localName, qName);
+        }
+    }
     private  static final int CHOICE_OPML=1;
 
     public void importOpml(){
@@ -390,7 +432,6 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
         /*Intent addIntent=new Intent(this,FeedAddActivity.class);
         startActivity(addIntent);*/
         DialogFragment f=new addFragment();
-        f.setCancelable(false);
 
         f.show(getFragmentManager(), "add");
 
