@@ -315,11 +315,12 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
                     c.moveToPosition(i);
                     ids[i] = c.getLong(0);
                     urls[i] = new String(c.getString(1));
+
                 }
                 mService.startActionFetchImage(getApplicationContext(), urls, ids);
             }
         }else{
-            Toast.makeText(this,getString(R.string.nonetwork),Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this,getString(R.string.nonetwork),Toast.LENGTH_SHORT).show();
         }
     }
     private void deleteOldFeed(){
