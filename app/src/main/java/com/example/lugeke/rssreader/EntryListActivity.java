@@ -1,8 +1,14 @@
 package com.example.lugeke.rssreader;
 
+import android.app.ActionBar;
+import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
@@ -19,11 +25,10 @@ import com.example.lugeke.rssreader.provider.FeedContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.content.CursorLoader;
-public class EntryListActivity extends FragmentActivity  {
+public class EntryListActivity extends FragmentActivity  implements ActionBar.TabListener{
 
     private static String TAG="EntryListActivity";
     private  static long id;
@@ -68,16 +73,21 @@ public class EntryListActivity extends FragmentActivity  {
         image=getIntent().getByteArrayExtra(MainActivity.feedICON);
         setTitle(title);
 
-        /*Bitmap icon;
+        final ActionBar actionBar=getActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        actionBar.setHomeButtonEnabled(true);
+        Bitmap icon;
         Drawable d=null;
         if(image!=null) {
             icon = BitmapFactory.decodeByteArray(image, 0, image.length);
             d=new BitmapDrawable(getResources(),icon);
-            getActionBar().setIcon(d);
+            actionBar.setIcon(d);
         }
         else{
-            getActionBar().setIcon(R.drawable.feedicon);
-        }*/
+            actionBar.setIcon(R.drawable.feedicon);
+        }
+
+
 
 
         mPagerAdapter=new EntryListPagerAdapter(getSupportFragmentManager());
@@ -86,10 +96,33 @@ public class EntryListActivity extends FragmentActivity  {
         mViewPager=(ViewPager)findViewById(R.id.pager);
         mViewPager.setAdapter(mPagerAdapter);
 
+        mViewPager.setOnPageChangeListener( new ViewPager.SimpleOnPageChangeListener(){
+            @Override
+            public void onPageSelected(int position) {
+                actionBar.setSelectedNavigationItem(position);
+            }
+        });
+
+        for(int i=0;i<mPagerAdapter.getCount();++i){
+            actionBar.addTab(actionBar.newTab().setText(mPagerAdapter.getPageTitle(i)).setTabListener(this));
+        }
+    }
+
+    @Override
+    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+        mViewPager.setCurrentItem(tab.getPosition());
+    }
+
+    @Override
+    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+
 
     }
 
+    @Override
+    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
 
+    }
 
 
     public static class EntryListPagerAdapter extends FragmentPagerAdapter {
